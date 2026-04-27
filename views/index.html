@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ .title }}</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <script src="/static/js/game.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="game-panel" aria-label="Minesweeper">
+        <header class="game-header">
+          <div>
+            <p class="eyebrow">Gin Minesweeper</p>
+            <h1>Dò mìn 9x9</h1>
+          </div>
+          <button class="primary-action" id="newGameButton" type="button">New game</button>
+        </header>
+
+        <div class="stats-bar" aria-live="polite">
+          <div class="stat">
+            <span class="stat-label">Mìn</span>
+            <strong id="mineCounter">10</strong>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Mở</span>
+            <strong id="revealedCounter">0</strong>
+          </div>
+          <div class="stat status-stat">
+            <span class="stat-label">Trạng thái</span>
+            <strong id="statusText">Đang tải</strong>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="toggle-action" id="flagModeButton" type="button" aria-pressed="false">
+            Flag mode
+          </button>
+        </div>
+
+        <div class="board-wrap">
+          <div class="board" id="board" role="grid" aria-label="Bảng dò mìn 9 nhân 9"></div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
