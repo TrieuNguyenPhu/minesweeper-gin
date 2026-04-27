@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minesweeper
+  namespace: default
+  labels:
+    app: minesweeper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minesweeper
+  template:
+    metadata:
+      labels:
+        app: minesweeper
+    spec:
+      containers:
+        - name: minesweeper
+          # Image built locally on EC2 and loaded into kind via:
+          #   docker build -t minesweeper-gin:local .
+          #   kind load docker-image minesweeper-gin:local
+          image: minesweeper-gin:local
+          imagePullPolicy: Never   # use the locally-loaded image, do NOT pull from registry
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
