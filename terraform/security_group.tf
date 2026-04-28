@@ -50,7 +50,7 @@ resource "aws_security_group" "ec2" {
   }
 
   egress {
-    description = "Allow all outbound (để EC2 pull packages, clone git, pull kind images)"
+    description = "Allow all outbound (EC2 pull packages, clone git, pull kind images)"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
