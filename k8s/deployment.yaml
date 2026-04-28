@@ -17,9 +17,9 @@ spec:
     spec:
       containers:
         - name: minesweeper
-          # Image built locally on EC2 and loaded into kind via:
+          # Image built locally on EC2 and loaded into minikube via:
           #   docker build -t minesweeper-gin:local .
-          #   kind load docker-image minesweeper-gin:local
+          #   minikube image load minesweeper-gin:local
           image: minesweeper-gin:local
           imagePullPolicy: Never   # use the locally-loaded image, do NOT pull from registry
           ports:

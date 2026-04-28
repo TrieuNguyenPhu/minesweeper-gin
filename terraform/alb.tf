@@ -15,7 +15,7 @@ resource "aws_lb" "main" {
 }
 
 # ─── Target Group ─────────────────────────────────────────────────────────────
-# Trỏ vào EC2 instance (instance type), port 30080 = kind NodePort
+# Trỏ vào EC2 instance (instance type), port 30080 = minikube NodePort
 resource "aws_lb_target_group" "app" {
   name     = "${var.app_name}-tg"
   port     = 30080

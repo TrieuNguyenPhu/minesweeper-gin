@@ -46,12 +46,16 @@ data "aws_ami" "al2023" {
 
 # ─── EC2 User Data Script ──────────────────────────────────────────────────────
 # Chạy tự động khi EC2 boot lần đầu.
-# Toàn bộ quá trình: cài Docker → cài kind → tạo cluster → build image → deploy K8s
+# Toàn bộ quá trình: cài Docker → cài minikube → tạo cluster → build image → deploy K8s
 locals {
   user_data = <<-EOT
     #!/bin/bash
     set -euo pipefail
     exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
+
+    # Cloud-init không set HOME → kubectl/minikube không tìm được config.
+    export HOME=/root
+    export KUBECONFIG=/root/.kube/config
 
     echo "========================================"
     echo " Minesweeper K8s Setup — $(date)"
@@ -60,7 +64,7 @@ locals {
     # ── [1/7] Update & install deps ──────────────────────────────────────────
     echo "[1/7] Installing system packages..."
     dnf update -y
-    dnf install -y docker git curl
+    dnf install -y docker git conntrack-tools --allowerasing
 
     # ── [2/7] Start Docker ───────────────────────────────────────────────────
     echo "[2/7] Starting Docker..."
@@ -73,38 +77,33 @@ locals {
     chmod +x /usr/local/bin/kubectl
     kubectl version --client --short 2>/dev/null || kubectl version --client
 
-    # ── [4/7] Install kind ───────────────────────────────────────────────────
-    echo "[4/7] Installing kind..."
-    curl -Lo /usr/local/bin/kind "https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64"
-    chmod +x /usr/local/bin/kind
-    kind version
+    # ── [4/7] Install minikube ───────────────────────────────────────────────
+    echo "[4/7] Installing minikube..."
+    curl -Lo /usr/local/bin/minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    chmod +x /usr/local/bin/minikube
+    minikube version
 
-    # ── [5/7] Create kind cluster with NodePort mapping ───────────────────────
-    echo "[5/7] Creating kind cluster..."
-    # Dùng printf thay vì heredoc để tránh conflict với Terraform template
-    printf '%s\n' \
-      'kind: Cluster' \
-      'apiVersion: kind.x-k8s.io/v1alpha4' \
-      'nodes:' \
-      '- role: control-plane' \
-      '  extraPortMappings:' \
-      '  - containerPort: 30080' \
-      '    hostPort: 30080' \
-      '    protocol: TCP' \
-      > /tmp/kind-config.yaml
+    # ── [5/7] Start minikube cluster with NodePort mapping ───────────────────
+    echo "[5/7] Starting minikube cluster..."
+    # --driver=docker : chạy K8s trong Docker container (giống kind)
+    # --ports=30080:30080 : map NodePort 30080 từ minikube container ra EC2 host
+    # --force : cho phép chạy dưới root (cloud-init chạy root)
+    minikube start \
+      --driver=docker \
+      --ports=30080:30080 \
+      --force \
+      --wait=all
 
-    kind create cluster --name minesweeper --config /tmp/kind-config.yaml --wait 120s
-    export KUBECONFIG=/root/.kube/config
     kubectl get nodes -o wide
 
-    # ── [6/7] Build Docker image & load into kind ─────────────────────────────
+    # ── [6/7] Build Docker image & load into minikube ─────────────────────────
     echo "[6/7] Building app image..."
     git clone ${var.github_repo} /opt/minesweeper
     cd /opt/minesweeper
     docker build -t minesweeper-gin:local .
 
-    echo "[6/7] Loading image into kind cluster..."
-    kind load docker-image minesweeper-gin:local --name minesweeper
+    echo "[6/7] Loading image into minikube cluster..."
+    minikube image load minesweeper-gin:local
 
     # ── [7/7] Deploy to Kubernetes ────────────────────────────────────────────
     echo "[7/7] Deploying to Kubernetes..."

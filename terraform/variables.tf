@@ -5,7 +5,7 @@ variable "aws_region" {
 }
 
 variable "instance_type" {
-  description = "EC2 instance type (needs ≥2 vCPU + 2 GB RAM for kind)"
+  description = "EC2 instance type (needs ≥2 vCPU + 2 GB RAM for minikube)"
   type        = string
   default     = "t3.medium"
 }

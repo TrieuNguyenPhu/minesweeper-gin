@@ -31,7 +31,7 @@ resource "aws_security_group" "ec2" {
   description = "Allow NodePort from ALB and SSH for debugging"
   vpc_id      = aws_vpc.main.id
 
-  # ALB → EC2 NodePort (kind service)
+  # ALB → EC2 NodePort (minikube service)
   ingress {
     description     = "NodePort from ALB"
     from_port       = 30080
@@ -50,7 +50,7 @@ resource "aws_security_group" "ec2" {
   }
 
   egress {
-    description = "Allow all outbound (EC2 pull packages, clone git, pull kind images)"
+    description = "Allow all outbound (EC2 pull packages, clone git, pull minikube images)"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
