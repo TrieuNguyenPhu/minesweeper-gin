@@ -90,6 +90,7 @@ Project sử dụng **2 Terraform providers** được wire với nhau:
 
 ```
 minesweeper-gin/
+├── Makefile                # Quản lý các lệnh rút gọn (Go + Terraform)
 ├── main.go                 # Entry point — Gin server, load templates, routes
 ├── go.mod / go.sum         # Go module dependencies
 ├── Dockerfile              # Multi-stage build: golang:1.25 → alpine:3.19
@@ -132,15 +133,21 @@ aws configure         # AWS credentials (Access Key + Secret Key)
 
 ## 🚀 Deploy (1-Click)
 
+### Cách 1: Sử dụng Makefile (Nhanh & Tiện nhất)
+Đứng từ thư mục gốc của dự án, bạn có thể thực hiện khởi tạo và deploy chỉ bằng **1 lệnh duy nhất**:
 ```bash
-# Clone repo
-git clone https://github.com/TrieuNguyenPhu/minesweeper-gin.git
-cd minesweeper-gin/terraform
+make tf-deploy
+```
+
+### Cách 2: Sử dụng lệnh Terraform truyền thống
+```bash
+# Di chuyển vào thư mục terraform
+cd terraform
 
 # Khởi tạo providers
 terraform init
 
-# Deploy toàn bộ (1 lệnh duy nhất)
+# Deploy toàn bộ tài nguyên
 terraform apply -auto-approve
 ```
 
@@ -200,12 +207,37 @@ sudo kubectl logs deployment/minesweeper
 
 ## 🗑️ Destroy (dọn sạch)
 
+### Cách 1: Sử dụng Makefile
+```bash
+make tf-destroy
+```
+
+### Cách 2: Sử dụng lệnh Terraform truyền thống
 ```bash
 cd terraform
 terraform destroy -auto-approve
 ```
 
 > Tất cả resources (EC2, VPC, ALB, Key Pair, ...) sẽ bị xóa hoàn toàn. Không tốn phí sau khi destroy.
+
+---
+
+## 🛠️ Hướng dẫn sử dụng Makefile
+
+Dự án cung cấp [Makefile](file:///d:/source%20code/minesweeper-gin/Makefile) ở thư mục gốc để đơn giản hóa quá trình phát triển Go và vận hành Terraform:
+
+| Nhóm | Lệnh | Mô tả |
+|---|---|---|
+| **Terraform** | `make tf-deploy` | **[Quan trọng]** Tự động `init` và `apply` tài nguyên lên AWS |
+| | `make tf-init` | Khởi tạo Terraform |
+| | `make tf-plan` | Xem trước kế hoạch thay đổi (dry-run) |
+| | `make tf-apply` | Apply tài nguyên (yêu cầu đã `init` trước đó) |
+| | `make tf-destroy` | Hủy toàn bộ tài nguyên trên AWS |
+| | `make tf-output` | Xem các output (IP, ALB URL, v.v.) |
+| | `make tf-ssh` | Tự động sinh file `.ssh/id_rsa_minesweeper` từ output và hiển thị lệnh SSH |
+| **Go/Gin** | `make go-run` | Chạy ứng dụng Go cục bộ |
+| | `make go-build` | Biên dịch ứng dụng Go |
+| | `make go-test` | Chạy bộ kiểm thử (unit test) |
 
 ---
 
